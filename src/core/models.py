@@ -18,7 +18,7 @@ class User(BaseModel):
     def is_active(self) -> bool:
         return self.status == UserStatus.ACTIVE
 
-    def activate(self):
+    def activate(self) -> None:
         """Activate the user account."""
         self.status = UserStatus.ACTIVE
         self.updated_at = datetime.now()

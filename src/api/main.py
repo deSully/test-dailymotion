@@ -49,7 +49,7 @@ app = FastAPI(title="User regisrtration API")
 @app.post(
     "/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED
 )
-def register_user(request: RegisterRequest):
+def register_user(request: RegisterRequest) -> RegisterResponse:
     try:
         user = registrasion_service.register_user(request.email, request.password)
         return RegisterResponse(
@@ -64,7 +64,7 @@ def register_user(request: RegisterRequest):
 
 
 @app.post("/activate", response_model=RegisterResponse)
-def activate_user(request: ActivateRequest):
+def activate_user(request: ActivateRequest) -> RegisterResponse:
     try:
         user = registrasion_service.activate_user(request.email, request.code)
         return RegisterResponse(
@@ -82,5 +82,5 @@ def activate_user(request: ActivateRequest):
 
 
 @app.on_event("shutdown")
-def shutdown_event():
+def shutdown_event() -> None:
     Database.close_all_connections()

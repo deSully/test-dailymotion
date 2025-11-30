@@ -7,9 +7,9 @@ from src.core.utils import (
     generate_activation_code,
     hash_password,
 )
-from src.infrastructure.db.repository_interfaces import (
-    AbstractActivationTokenRepository,
-    AbstractUserRepository,
+from src.infrastructure.db.postgres_repository import (
+    PostgresActivationTokenRepository,
+    PostgresUserRepository,
 )
 from src.services.email_interfaces import AbstractEmailService
 from src.services.exceptions import (
@@ -22,8 +22,8 @@ from src.services.exceptions import (
 class RegistrationService:
     def __init__(
         self,
-        user_repo: AbstractUserRepository,
-        token_repo: AbstractActivationTokenRepository,
+        user_repo: PostgresUserRepository,
+        token_repo: PostgresActivationTokenRepository,
         email_service: AbstractEmailService,
     ):
         self.user_repo = user_repo

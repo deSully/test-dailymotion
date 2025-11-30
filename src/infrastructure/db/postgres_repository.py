@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from uuid import UUID
 
 import psycopg2.extras
@@ -9,7 +9,7 @@ from src.infrastructure.db.database import Database
 from src.infrastructure.db.repository_interfaces import AbstractUserRepository
 
 
-def map_row_to_user(row: Dict[str, Any]) -> User:
+def map_row_to_user(row: Any) -> User:
     return User(
         id=row["id"],
         email=row["email"],
@@ -21,7 +21,7 @@ def map_row_to_user(row: Dict[str, Any]) -> User:
 
 
 class PostgresUserRepository(AbstractUserRepository):
-    def __init__(self):
+    def __init__(self) -> None:
         Database.initialize()
 
     def create_user(self, user: User) -> User:
@@ -83,7 +83,7 @@ class PostgresUserRepository(AbstractUserRepository):
             Database.return_connection(conn)
 
 
-def map_row_to_activation_token(row: Dict[str, Any]) -> ActivationToken:
+def map_row_to_activation_token(row: Any) -> ActivationToken:
     return ActivationToken(
         user_id=row["user_id"],
         code=row["code"],
@@ -92,7 +92,7 @@ def map_row_to_activation_token(row: Dict[str, Any]) -> ActivationToken:
 
 
 class PostgresActivationTokenRepository:
-    def __init__(self):
+    def __init__(self) -> None:
         Database.initialize()
 
     def create_activation_token(self, token: ActivationToken) -> ActivationToken:

@@ -12,7 +12,7 @@ DB_CONFIG = {
 BASE_DIR = "/app"
 
 
-def apply_migrations():
+def apply_migrations() -> None:
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()

@@ -12,7 +12,7 @@ logs:
 test:
 	docker compose exec app pytest
 
-.PHONY: test lint format check
+.PHONY: test lint format mypy check
 
 test:
 	docker compose exec app pytest
@@ -21,3 +21,8 @@ lint:
 
 format:
 	ruff format .
+mypy:
+	mypy src
+
+check: lint mypy
+	@echo "All checks passed!"
