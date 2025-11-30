@@ -17,6 +17,12 @@ class AbstractUserRepository(ABC):
     def update_user_status(self, user_id: UUID, status: str) -> bool:
         raise NotImplementedError
 
+class AbstractActivationTokenRepository(ABC):
+
+    @abstractmethod
+    def create_activation_token(self, token: ActivationToken) -> ActivationToken:
+        raise NotImplementedError
+
     @abstractmethod
     def find_by_user_id_and_code(self, user_id: UUID, code: str) -> Optional[ActivationToken]:
         raise NotImplementedError
