@@ -51,3 +51,11 @@ To run the entire test suite inside the application containter :
 docker compose exec app pytest
 ```
 
+## API Endpoints
+
+The API is fully documented using the **OpenAPI standard (Swagger UI)**. This documentation
+provides all necessary details on request schemas, required fields, and response codes.
+
+**Access the interactive documentation**
+-   URL : `http://localhost:8000/docs`
+
