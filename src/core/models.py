@@ -21,6 +21,6 @@ class User(BaseModel):
         self.updated_at = datetime.now()
 
 class ActivationToken(BaseModel):
-    token: uuid.UUID = Field(default_factory=uuid.uuid4)
     user_id: uuid.UUID
+    code : str = Field(..., min_length=4, max_length=4)
     created_at: datetime = Field(default_factory=datetime.now)
