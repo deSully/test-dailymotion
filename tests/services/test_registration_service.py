@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from src.services.registration_service import RegistrationService, UserAlreadyExists, IvalidTokenError, UserAlreadyActive
+from src.services.registration_service import RegistrationService, UserAlreadyExists, InvalidTokenError, UserAlreadyActive
 from src.core.models import User, ActivationToken
 from src.core.enums import UserStatus
 from src.core.utils import hash_password, generate_activation_code, ACTIVATION_TOKEN_TTL_SECONDS
@@ -81,7 +81,7 @@ def test_activate_user_invalid_token(registration_service, user_repo_mock, token
     user_repo_mock.find_by_email.return_value = user
     token_repo_mock.find_by_user_id_and_code.return_value = None
 
-    with pytest.raises(IvalidTokenError):
+    with pytest.raises(InvalidTokenError):
         registration_service.activate_user(TEST_EMAIL, "WRONGCODE")
 
     user_repo_mock.find_by_email.assert_called_once_with(TEST_EMAIL)
@@ -98,7 +98,7 @@ def test_activate_user_token_expired(mock_datetime, registration_service, user_r
     with patch('src.services.registration_service.datetime') as mock_datetime:
         mock_datetime.now.return_value = TOKEN_CREATION_TIME + timedelta(seconds=ACTIVATION_TOKEN_TTL_SECONDS + 10)
 
-        with pytest.raises(IvalidTokenError):
+        with pytest.raises(InvalidTokenError):
             registration_service.activate_user(TEST_EMAIL, TEST_ACTIVATION_CODE)
 
     token_repo_mock.delete_activation_token.assert_called_once_with(TEST_USER_ID)

@@ -6,13 +6,7 @@ from src.core.models import User, ActivationToken
 from src.core.enums import UserStatus
 from src.core.utils import generate_activation_code, hash_password, ACTIVATION_TOKEN_TTL_SECONDS
 from src.infrastructure.db.database import Database
-
-class UserAlreadyExists(Exception):
-    pass
-class IvalidTokenError(Exception):
-    pass
-class UserAlreadyActive(Exception):
-    pass
+from src.services.exceptions import UserAlreadyExists, InvalidTokenError, UserAlreadyActive
 
 class RegistrationService:
     def __init__(self, user_repo: AbstractUserRepository,
@@ -40,19 +34,19 @@ class RegistrationService:
     def activate_user(self, email: str, code: str) -> User:
         user = self.user_repo.find_by_email(email)
         if not user:
-            raise IvalidTokenError("Invalid email or activation code.")
+            raise InvalidTokenError("Invalid email or activation code.")
         
         if user.is_active():
             raise UserAlreadyActive("User account is already active.")
         
         token = self.token_repo.find_by_user_id_and_code(user.id, code)
         if not token:
-            raise IvalidTokenError("Invalid email or activation code.")
+            raise InvalidTokenError("Invalid email or activation code.")
         
         time_diff = datetime.now() - token.created_at
         if time_diff.total_seconds() > ACTIVATION_TOKEN_TTL_SECONDS:
             self.token_repo.delete_activation_token(user.id)
-            raise IvalidTokenError("Activation token has expired.")
+            raise InvalidTokenError("Activation token has expired.")
         
         user.activate()
         self.user_repo.update_user_status(user.id, UserStatus.ACTIVE.value)
