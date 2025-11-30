@@ -43,6 +43,28 @@ The API will be available at `http://localhost:8000``
 docker compose down
 ```
 
+## Available Commands
+
+Most common commands are available through the Makefile for convenience:
+
+```bash
+# Build and run
+make build          # Build Docker containers
+make up             # Start containers in detached mode
+make logs           # View application logs
+
+# Testing and code quality
+make test           # Run all tests
+make lint           # Check code style with ruff
+make format         # Format code with ruff
+make mypy           # Run type checking with mypy
+make check          # Run both lint and mypy checks
+
+# Single command examples
+docker compose exec app pytest                    # Run tests
+docker compose exec app pytest tests/api/        # Run specific test directory
+```
+
 ## Testing
 
 To run the entire test suite inside the application containter : 
