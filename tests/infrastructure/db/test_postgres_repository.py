@@ -1,11 +1,14 @@
 import pytest
-from uuid import uuid4
-from datetime import datetime
-from src.infrastructure.db.postgres_repository import PostgresUserRepository, PostgresActivationTokenRepository
-from src.core.models import User, ActivationToken
+
 from src.core.enums import UserStatus
+from src.core.models import ActivationToken, User
 from src.core.utils import hash_password
 from src.infrastructure.db.database import Database
+from src.infrastructure.db.postgres_repository import (
+    PostgresActivationTokenRepository,
+    PostgresUserRepository,
+)
+
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_db_pool():
@@ -14,12 +17,13 @@ def setup_db_pool():
     if Database._connection_pool and not Database._connection_pool.closed:
         Database.close_all_connections()
 
+
 @pytest.fixture
 def cleanup_db():
     if Database._connection_pool is None or Database._connection_pool.closed:
         Database._connection_pool = None
         Database.initialize()
-    
+
     conn = Database.get_connection()
     try:
         with conn.cursor() as cursor:
@@ -28,13 +32,16 @@ def cleanup_db():
     finally:
         Database.return_connection(conn)
 
+
 @pytest.fixture
 def user_repo() -> PostgresUserRepository:
     return PostgresUserRepository()
 
+
 @pytest.fixture
 def token_repo() -> PostgresActivationTokenRepository:
     return PostgresActivationTokenRepository()
+
 
 def test_user_creation_and_retrieval(user_repo: PostgresUserRepository, cleanup_db):
     password = "testpassword"
@@ -52,7 +59,12 @@ def test_user_creation_and_retrieval(user_repo: PostgresUserRepository, cleanup_
     assert retrieved_user.email == created_user.email
     assert retrieved_user.status == UserStatus.PENDING
 
-def test_token_creation_and_retrieval(token_repo: PostgresActivationTokenRepository, user_repo: PostgresUserRepository, cleanup_db):
+
+def test_token_creation_and_retrieval(
+    token_repo: PostgresActivationTokenRepository,
+    user_repo: PostgresUserRepository,
+    cleanup_db,
+):
     password = "testpassword"
     hashed_password = hash_password(password)
     user = User(email="test@example.com", password_hash=hashed_password)

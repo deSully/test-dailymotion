@@ -1,11 +1,13 @@
-import psycopg2.extras
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, Optional
 from uuid import UUID
 
-from src.core.models import User, ActivationToken
+import psycopg2.extras
+
 from src.core.enums import UserStatus
-from src.infrastructure.db.repository_interfaces import AbstractUserRepository
+from src.core.models import ActivationToken, User
 from src.infrastructure.db.database import Database
+from src.infrastructure.db.repository_interfaces import AbstractUserRepository
+
 
 def map_row_to_user(row: Dict[str, Any]) -> User:
     return User(
@@ -17,6 +19,7 @@ def map_row_to_user(row: Dict[str, Any]) -> User:
         updated_at=row["updated_at"],
     )
 
+
 class PostgresUserRepository(AbstractUserRepository):
     def __init__(self):
         Database.initialize()
@@ -27,11 +30,20 @@ class PostgresUserRepository(AbstractUserRepository):
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO users (id, email, password_hash, status, created_at, updated_at)
+                    INSERT INTO users (
+                        id, email, password_hash, status, created_at, updated_at
+                    )
                     VALUES (%s, %s, %s, %s, %s, %s)
                     RETURNING *;
                     """,
-                    (str(user.id), user.email, user.password_hash, user.status.value, user.created_at, user.updated_at),
+                    (
+                        str(user.id),
+                        user.email,
+                        user.password_hash,
+                        user.status.value,
+                        user.created_at,
+                        user.updated_at,
+                    ),
                 )
                 row = cursor.fetchone()
                 conn.commit()
@@ -46,7 +58,8 @@ class PostgresUserRepository(AbstractUserRepository):
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(
-                    "SELECT id, email, password_hash, status, created_at, updated_at FROM users WHERE email = %s;",
+                    "SELECT id, email, password_hash, status, created_at, "
+                    "updated_at FROM users WHERE email = %s;",
                     (email,),
                 )
                 row = cursor.fetchone()
@@ -55,7 +68,7 @@ class PostgresUserRepository(AbstractUserRepository):
                 return None
         finally:
             Database.return_connection(conn)
-    
+
     def update_user_status(self, user_id: UUID, status: str) -> bool:
         conn = Database.get_connection()
         try:
@@ -76,6 +89,7 @@ def map_row_to_activation_token(row: Dict[str, Any]) -> ActivationToken:
         code=row["code"],
         created_at=row["created_at"],
     )
+
 
 class PostgresActivationTokenRepository:
     def __init__(self):
@@ -101,12 +115,15 @@ class PostgresActivationTokenRepository:
         finally:
             Database.return_connection(conn)
 
-    def find_by_user_id_and_code(self, user_id: UUID, code: str) -> Optional[ActivationToken]:
+    def find_by_user_id_and_code(
+        self, user_id: UUID, code: str
+    ) -> Optional[ActivationToken]:
         conn = Database.get_connection()
         try:
             with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(
-                    "SELECT user_id, code, created_at FROM activation_tokens WHERE user_id = %s AND code = %s;",
+                    "SELECT user_id, code, created_at FROM activation_tokens "
+                    "WHERE user_id = %s AND code = %s;",
                     (str(user_id), code),
                 )
                 row = cursor.fetchone()

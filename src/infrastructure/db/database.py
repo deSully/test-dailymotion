@@ -1,14 +1,16 @@
 import os
+from typing import Optional
+
 from psycopg2 import pool
 from psycopg2.extensions import connection as connection_type
-from typing import Optional
 
 DB_CONFIG = {
     "host": "db",
     "user": os.getenv("DB_USER"),
     "database": os.getenv("DB_NAME"),
-    "password": os.getenv("DB_PASSWORD")
+    "password": os.getenv("DB_PASSWORD"),
 }
+
 
 class Database:
     _connection_pool: Optional[pool.SimpleConnectionPool] = None
@@ -17,9 +19,7 @@ class Database:
     def initialize(cls, minconn: int = 1, maxconn: int = 10):
         if cls._connection_pool is None:
             cls._connection_pool = pool.SimpleConnectionPool(
-                minconn,
-                maxconn,
-                **DB_CONFIG
+                minconn, maxconn, **DB_CONFIG
             )
 
     @classmethod
