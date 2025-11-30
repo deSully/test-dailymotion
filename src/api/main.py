@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
+from uuid import UUID
 from src.services.registration_service import RegistrationService
 from src.infrastructure.db.postgres_repository import PostgresUserRepository, PostgresActivationTokenRepository
 from src.infrastructure.email.mock_email_service import MockEmailService
@@ -22,7 +23,7 @@ class RegisterResponse(BaseModel):
     class Config:
         from_attributes = True
 
-Database.initialize(min_connections=1, max_connections=10)
+Database.initialize(minconn=1, maxconn=10)
 
 user_repository = PostgresUserRepository()
 token_repository = PostgresActivationTokenRepository()
@@ -39,7 +40,11 @@ app = FastAPI(title="User regisrtration API")
 def register_user(request: RegisterRequest):
     try:
         user = registrasion_service.register_user(request.email, request.password)
-        return user
+        return RegisterResponse(
+            id=str(user.id),
+            email=user.email,
+            status=user.status.value
+        )
     except UserAlreadyExists as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except Exception as e:
@@ -49,7 +54,11 @@ def register_user(request: RegisterRequest):
 def activate_user(request: ActivateRequest):
     try:
         user = registrasion_service.activate_user(request.email, request.code)
-        return user
+        return RegisterResponse(
+            id=str(user.id),
+            email=user.email,
+            status=user.status.value
+        )
     
     except InvalidTokenError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

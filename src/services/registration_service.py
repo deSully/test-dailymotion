@@ -1,5 +1,5 @@
 from uuid import UUID
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.infrastructure.db.repository_interfaces import AbstractUserRepository, AbstractActivationTokenRepository
 from src.services.email_interfaces import AbstractEmailService
 from src.core.models import User, ActivationToken
@@ -28,7 +28,7 @@ class RegistrationService:
         activation_code = generate_activation_code()
         activation_token = ActivationToken(user_id=created_user.id, code=activation_code)
         self.token_repo.create_activation_token(activation_token)
-        self.email_service.send_activation_email(created_user.email, activation_code)
+        self.email_service.send_activation_code(created_user.email, activation_code)
         return created_user
     
     def activate_user(self, email: str, code: str) -> User:
@@ -43,7 +43,8 @@ class RegistrationService:
         if not token:
             raise InvalidTokenError("Invalid email or activation code.")
         
-        time_diff = datetime.now() - token.created_at
+        now = datetime.now(timezone.utc) if token.created_at.tzinfo else datetime.now()
+        time_diff = now - token.created_at
         if time_diff.total_seconds() > ACTIVATION_TOKEN_TTL_SECONDS:
             self.token_repo.delete_activation_token(user.id)
             raise InvalidTokenError("Activation token has expired.")

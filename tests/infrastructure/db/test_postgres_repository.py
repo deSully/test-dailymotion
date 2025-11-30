@@ -11,10 +11,15 @@ from src.infrastructure.db.database import Database
 def setup_db_pool():
     Database.initialize()
     yield
-    Database.close_all_connections()
+    if Database._connection_pool and not Database._connection_pool.closed:
+        Database.close_all_connections()
 
 @pytest.fixture
 def cleanup_db():
+    if Database._connection_pool is None or Database._connection_pool.closed:
+        Database._connection_pool = None
+        Database.initialize()
+    
     conn = Database.get_connection()
     try:
         with conn.cursor() as cursor:
