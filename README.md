@@ -98,13 +98,13 @@ The API will be available at `http://localhost:8000`
 
 ## API Endpoints
 
-### POST /register
+### POST /v1/register
 
 Register a new user with email and password.
 
 **Request:**
 ```bash
-curl -X POST http://localhost:8000/register \
+curl -X POST http://localhost:8000/v1/register \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "password": "SecurePass123"}'
 ```
@@ -118,13 +118,13 @@ curl -X POST http://localhost:8000/register \
 }
 ```
 
-### POST /activate
+### POST /v1/activate
 
 Activate a user account using HTTP Basic Authentication.
 
 **Request:**
 ```bash
-curl -X POST http://localhost:8000/activate \
+curl -X POST http://localhost:8000/v1/activate \
   -u user@example.com:1234
 ```
 
@@ -141,13 +141,13 @@ Where:
 }
 ```
 
-### GET /health
+### GET /v1/health
 
 Health check endpoint to verify API and database connectivity.
 
 **Request:**
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8000/v1/health
 ```
 
 **Response:** `200 OK`

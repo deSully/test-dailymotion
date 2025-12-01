@@ -69,7 +69,7 @@ app = FastAPI(
 
 
 @app.post(
-    "/register",
+    "/v1/register",
     response_model=RegisterResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
@@ -159,7 +159,7 @@ def register_user(
 
 
 @app.post(
-    "/activate",
+    "/v1/activate",
     response_model=RegisterResponse,
     summary="Activate user account",
     description="""
@@ -239,7 +239,7 @@ def activate_user(
 
 
 @app.get(
-    "/health",
+    "/v1/health",
     summary="Health check",
     description="""
     Performs a health check on the API and database connectivity.

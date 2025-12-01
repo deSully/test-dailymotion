@@ -39,7 +39,7 @@ def cleanup_test_data():
 
 def test_register_password_validation_too_short(client: TestClient):
     response = client.post(
-        "/register", json={"email": "short@example.com", "password": "Short1"}
+        "/v1/register", json={"email": "short@example.com", "password": "Short1"}
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert "at least 8 characters" in str(response.json())
@@ -47,7 +47,8 @@ def test_register_password_validation_too_short(client: TestClient):
 
 def test_register_password_validation_no_uppercase(client: TestClient):
     response = client.post(
-        "/register", json={"email": "noupper@example.com", "password": "lowercase123"}
+        "/v1/register",
+        json={"email": "noupper@example.com", "password": "lowercase123"},
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert "uppercase letter" in str(response.json())
@@ -55,7 +56,8 @@ def test_register_password_validation_no_uppercase(client: TestClient):
 
 def test_register_password_validation_no_lowercase(client: TestClient):
     response = client.post(
-        "/register", json={"email": "nolower@example.com", "password": "UPPERCASE123"}
+        "/v1/register",
+        json={"email": "nolower@example.com", "password": "UPPERCASE123"},
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert "lowercase letter" in str(response.json())
@@ -63,7 +65,8 @@ def test_register_password_validation_no_lowercase(client: TestClient):
 
 def test_register_password_validation_no_digit(client: TestClient):
     response = client.post(
-        "/register", json={"email": "nodigit@example.com", "password": "NoDigitPass"}
+        "/v1/register",
+        json={"email": "nodigit@example.com", "password": "NoDigitPass"},
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert "digit" in str(response.json())
@@ -71,7 +74,7 @@ def test_register_password_validation_no_digit(client: TestClient):
 
 def test_register_and_activate_user_success(client: TestClient):
     registration_data = {"email": "api_test@example.com", "password": "TestPassword123"}
-    response_register = client.post("/register", json=registration_data)
+    response_register = client.post("/v1/register", json=registration_data)
 
     assert response_register.status_code == 201
     user_data = response_register.json()
@@ -91,7 +94,7 @@ def test_register_and_activate_user_success(client: TestClient):
         Database.return_connection(conn)
 
     response_activate = client.post(
-        "/activate", auth=(registration_data["email"], activation_code)
+        "/v1/activate", auth=(registration_data["email"], activation_code)
     )
 
     assert response_activate.status_code == 200
@@ -101,8 +104,8 @@ def test_register_and_activate_user_success(client: TestClient):
 
 def test_register_user_already_exists(client: TestClient):
     data = {"email": "conflict@example.com", "password": "ValidPass1"}
-    client.post("/register", json=data)
-    response = client.post("/register", json=data)
+    client.post("/v1/register", json=data)
+    response = client.post("/v1/register", json=data)
 
     assert response.status_code == status.HTTP_409_CONFLICT
     assert "already exists" in response.json()["detail"]
@@ -110,9 +113,9 @@ def test_register_user_already_exists(client: TestClient):
 
 def test_activate_user_invalid_code(client: TestClient):
     email = "invalidcode@example.com"
-    client.post("/register", json={"email": email, "password": "ValidPass1"})
+    client.post("/v1/register", json={"email": email, "password": "ValidPass1"})
 
-    response = client.post("/activate", auth=(email, "0000"))
+    response = client.post("/v1/activate", auth=(email, "0000"))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "Invalid email or activation code" in response.json()["detail"]
@@ -120,7 +123,7 @@ def test_activate_user_invalid_code(client: TestClient):
 
 def test_activate_user_token_expired(client: TestClient):
     email = "expired@example.com"
-    client.post("/register", json={"email": email, "password": "ValidPass1"})
+    client.post("/v1/register", json={"email": email, "password": "ValidPass1"})
 
     user_repo = PostgresUserRepository()
     user = user_repo.find_by_email(email)
@@ -145,7 +148,7 @@ def test_activate_user_token_expired(client: TestClient):
     finally:
         Database.return_connection(conn)
 
-    response = client.post("/activate", auth=(email, activation_code))
+    response = client.post("/v1/activate", auth=(email, activation_code))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "Activation token has expired" in response.json()["detail"]
