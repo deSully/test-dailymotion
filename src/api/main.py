@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, EmailStr, field_validator
@@ -50,8 +52,6 @@ class RegisterResponse(BaseModel):
         from_attributes = True
 
 
-Database.initialize(minconn=1, maxconn=10)
-
 security = HTTPBasic()
 
 user_repository = PostgresUserRepository()
@@ -61,10 +61,23 @@ email_service = MockEmailService()
 registrasion_service = RegistrationService(
     user_repo=user_repository, token_repo=token_repository, email_service=email_service
 )
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger.info("Starting up application, initializing database connections")
+    Database.initialize(minconn=1, maxconn=10)
+    yield
+    # Shutdown
+    logger.info("Shutting down application, closing database connections")
+    Database.close_all_connections()
+
+
 app = FastAPI(
     title="User Registration API",
     description="Production-ready user registration system with email verification",
-    version="1.0.0",
+    lifespan=lifespan,
 )
 
 
@@ -281,9 +294,3 @@ def health_check() -> dict[str, str]:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database connection failed",
         )
-
-
-@app.on_event("shutdown")
-def shutdown_event() -> None:
-    logger.info("Shutting down application, closing database connections")
-    Database.close_all_connections()
