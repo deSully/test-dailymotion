@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, EmailStr
 
-from src.infrastructure.db.database import Database
-from src.infrastructure.db.postgres_repository import (
+from src.infrastructure.db.activation_token_repository import (
     PostgresActivationTokenRepository,
-    PostgresUserRepository,
 )
+from src.infrastructure.db.database import Database
+from src.infrastructure.db.user_repository import PostgresUserRepository
 from src.infrastructure.email.mock_email_service import MockEmailService
 from src.services.exceptions import (
     InvalidTokenError,

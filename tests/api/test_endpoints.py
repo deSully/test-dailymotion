@@ -8,7 +8,7 @@ from src.api.main import app
 from src.core.enums import UserStatus
 from src.core.utils import ACTIVATION_TOKEN_TTL_SECONDS
 from src.infrastructure.db.database import Database
-from src.infrastructure.db.postgres_repository import PostgresUserRepository
+from src.infrastructure.db.user_repository import PostgresUserRepository
 
 
 @pytest.fixture(scope="module")

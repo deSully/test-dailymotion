@@ -3,11 +3,11 @@ import pytest
 from src.core.enums import UserStatus
 from src.core.models import ActivationToken, User
 from src.core.utils import hash_password
-from src.infrastructure.db.database import Database
-from src.infrastructure.db.postgres_repository import (
+from src.infrastructure.db.activation_token_repository import (
     PostgresActivationTokenRepository,
-    PostgresUserRepository,
 )
+from src.infrastructure.db.database import Database
+from src.infrastructure.db.user_repository import PostgresUserRepository
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -7,10 +7,10 @@ from src.core.utils import (
     generate_activation_code,
     hash_password,
 )
-from src.infrastructure.db.postgres_repository import (
+from src.infrastructure.db.activation_token_repository import (
     PostgresActivationTokenRepository,
-    PostgresUserRepository,
 )
+from src.infrastructure.db.user_repository import PostgresUserRepository
 from src.services.email_interfaces import AbstractEmailService
 from src.services.exceptions import (
     InvalidTokenError,
