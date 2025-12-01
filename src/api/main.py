@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, EmailStr
 
@@ -47,9 +47,19 @@ app = FastAPI(title="User regisrtration API")
 @app.post(
     "/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED
 )
-def register_user(request: RegisterRequest) -> RegisterResponse:
+def register_user(
+    request: RegisterRequest, background_tasks: BackgroundTasks
+) -> RegisterResponse:
     try:
-        user = registrasion_service.register_user(request.email, request.password)
+
+        def send_email_task(email: str, code: str) -> None:
+            email_service.send_activation_code(email, code)
+
+        user = registrasion_service.register_user(
+            request.email,
+            request.password,
+            lambda email, code: background_tasks.add_task(send_email_task, email, code),
+        )
         return RegisterResponse(
             id=str(user.id), email=user.email, status=user.status.value
         )

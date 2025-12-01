@@ -33,6 +33,11 @@ def email_service_mock():
 
 
 @pytest.fixture
+def background_tasks_mock():
+    return MagicMock()
+
+
+@pytest.fixture
 def registration_service(user_repo_mock, token_repo_mock, email_service_mock):
     return RegistrationService(user_repo_mock, token_repo_mock, email_service_mock)
 
@@ -62,6 +67,7 @@ def test_register_user_success(
     user_repo_mock,
     token_repo_mock,
     email_service_mock,
+    background_tasks_mock,
 ):
     user_repo_mock.find_by_email.return_value = None
     user_repo_mock.create_user.return_value = User(
@@ -71,16 +77,16 @@ def test_register_user_success(
         status=UserStatus.PENDING,
     )
 
-    user = registration_service.register_user(TEST_EMAIL, TEST_PASSWORD)
+    user = registration_service.register_user(
+        TEST_EMAIL, TEST_PASSWORD, background_tasks_mock
+    )
 
     assert user.email == TEST_EMAIL
     assert user.status == UserStatus.PENDING
     user_repo_mock.find_by_email.assert_called_once_with(TEST_EMAIL)
     user_repo_mock.create_user.assert_called_once()
     token_repo_mock.create_activation_token.assert_called_once()
-    email_service_mock.send_activation_code.assert_called_once_with(
-        TEST_EMAIL, TEST_ACTIVATION_CODE
-    )
+    background_tasks_mock.assert_called_once_with(TEST_EMAIL, TEST_ACTIVATION_CODE)
 
 
 @patch("src.services.registration_service.datetime")
@@ -119,7 +125,7 @@ def test_activate_user_success(
     "src.services.registration_service.hash_password", return_value=TEST_HASHED_PASSWORD
 )
 def test_register_user_existing_email(
-    mock_hash_password, registration_service, user_repo_mock
+    mock_hash_password, registration_service, user_repo_mock, background_tasks_mock
 ):
     user_repo_mock.find_by_email.return_value = User(
         id=TEST_USER_ID,
@@ -129,7 +135,9 @@ def test_register_user_existing_email(
     )
 
     with pytest.raises(UserAlreadyExists):
-        registration_service.register_user(TEST_EMAIL, TEST_PASSWORD)
+        registration_service.register_user(
+            TEST_EMAIL, TEST_PASSWORD, background_tasks_mock
+        )
 
     user_repo_mock.find_by_email.assert_called_once_with(TEST_EMAIL)
 

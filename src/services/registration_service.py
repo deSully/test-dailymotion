@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Callable
 
 from src.core.enums import UserStatus
 from src.core.models import ActivationToken, User
@@ -30,7 +31,12 @@ class RegistrationService:
         self.token_repo = token_repo
         self.email_service = email_service
 
-    def register_user(self, email: str, password: str) -> User:
+    def register_user(
+        self,
+        email: str,
+        password: str,
+        background_tasks: Callable[[str, str], None],
+    ) -> User:
         if self.user_repo.find_by_email(email):
             raise UserAlreadyExists("An account with this email already exists.")
 
@@ -46,7 +52,9 @@ class RegistrationService:
             user_id=created_user.id, code=activation_code
         )
         self.token_repo.create_activation_token(activation_token)
-        self.email_service.send_activation_code(created_user.email, activation_code)
+
+        background_tasks(created_user.email, activation_code)
+
         return created_user
 
     def activate_user(self, email: str, code: str) -> User:
