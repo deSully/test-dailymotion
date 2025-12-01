@@ -83,7 +83,7 @@ Create a file named **`.env`** at the project root to securely store database cr
 # .env file content example
 DB_NAME=registration_db
 DB_USER=myuser
-DB_PAWWSORD=password
+DB_PASSWORD=password
 ```
 
 ### 2. Launch the Application
