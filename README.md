@@ -131,6 +131,30 @@ Where:
 }
 ```
 
+### GET /health
+
+Health check endpoint to verify API and database connectivity.
+
+**Request:**
+```bash
+curl http://localhost:8000/health
+```
+
+**Response:** `200 OK`
+```json
+{
+  "status": "healthy",
+  "database": "connected"
+}
+```
+
+**Error Response:** `503 Service Unavailable`
+```json
+{
+  "detail": "Database connection failed"
+}
+```
+
 ### 3. Stop the containers
 
 ```bash

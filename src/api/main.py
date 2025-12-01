@@ -93,6 +93,21 @@ def activate_user(
         )
 
 
+@app.get("/health")
+def health_check() -> dict[str, str]:
+    try:
+        conn = Database.get_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1")
+        Database.return_connection(conn)
+        return {"status": "healthy", "database": "connected"}
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection failed",
+        )
+
+
 @app.on_event("shutdown")
 def shutdown_event() -> None:
     Database.close_all_connections()
