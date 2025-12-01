@@ -61,11 +61,73 @@ email_service = MockEmailService()
 registrasion_service = RegistrationService(
     user_repo=user_repository, token_repo=token_repository, email_service=email_service
 )
-app = FastAPI(title="User regisrtration API")
+app = FastAPI(
+    title="User Registration API",
+    description="Production-ready user registration system with email verification",
+    version="1.0.0",
+)
 
 
 @app.post(
-    "/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED
+    "/register",
+    response_model=RegisterResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user",
+    description="""
+    Creates a new user account and sends a 4-digit activation code via email.
+
+    The activation code expires after 60 seconds and must be used with the
+    /activate endpoint.
+
+    **Password requirements:**
+    - Minimum 8 characters
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one digit
+    """,
+    responses={
+        201: {
+            "description": "User successfully registered",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "email": "user@example.com",
+                        "status": "PENDING",
+                    }
+                }
+            },
+        },
+        409: {
+            "description": "Email already registered",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "User with this email already exists"}
+                }
+            },
+        },
+        422: {
+            "description": "Invalid email or password requirements not met",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "loc": ["body", "password"],
+                                "msg": (
+                                    "Password must contain at least one "
+                                    "uppercase letter"
+                                ),
+                                "type": "value_error",
+                            }
+                        ]
+                    }
+                }
+            },
+        },
+        500: {"description": "Internal server error"},
+    },
+    tags=["Authentication"],
 )
 def register_user(
     request: RegisterRequest, background_tasks: BackgroundTasks
@@ -95,7 +157,58 @@ def register_user(
         )
 
 
-@app.post("/activate", response_model=RegisterResponse)
+@app.post(
+    "/activate",
+    response_model=RegisterResponse,
+    summary="Activate user account",
+    description="""
+    Activates a user account using HTTP Basic Authentication.
+
+    **Authentication:**
+    - Username: User's email address
+    - Password: 4-digit activation code (received by email)
+
+    **Important:** Activation code expires after 60 seconds.
+    """,
+    responses={
+        200: {
+            "description": "User successfully activated",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "email": "user@example.com",
+                        "status": "ACTIVE",
+                    }
+                }
+            },
+        },
+        401: {
+            "description": "Invalid credentials",
+            "content": {
+                "application/json": {"example": {"detail": "Invalid credentials"}}
+            },
+        },
+        404: {
+            "description": "User not found or invalid activation code",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Invalid or expired activation code"}
+                }
+            },
+        },
+        409: {
+            "description": "User already activated",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "User is already active"}
+                }
+            },
+        },
+        500: {"description": "Internal server error"},
+    },
+    tags=["Authentication"],
+)
 def activate_user(
     credentials: HTTPBasicCredentials = Depends(security),
 ) -> RegisterResponse:
@@ -124,7 +237,35 @@ def activate_user(
         )
 
 
-@app.get("/health")
+@app.get(
+    "/health",
+    summary="Health check",
+    description="""
+    Performs a health check on the API and database connectivity.
+
+    Returns HTTP 200 if the service is healthy and database is reachable.
+    Returns HTTP 503 if the database connection fails.
+    """,
+    responses={
+        200: {
+            "description": "Service is healthy",
+            "content": {
+                "application/json": {
+                    "example": {"status": "healthy", "database": "connected"}
+                }
+            },
+        },
+        503: {
+            "description": "Service unavailable",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Database connection failed"}
+                }
+            },
+        },
+    },
+    tags=["Monitoring"],
+)
 def health_check() -> dict[str, str]:
     try:
         conn = Database.get_connection()
