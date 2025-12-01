@@ -37,6 +37,38 @@ def cleanup_test_data():
     yield
 
 
+def test_register_password_validation_too_short(client: TestClient):
+    response = client.post(
+        "/register", json={"email": "short@example.com", "password": "Short1"}
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert "at least 8 characters" in str(response.json())
+
+
+def test_register_password_validation_no_uppercase(client: TestClient):
+    response = client.post(
+        "/register", json={"email": "noupper@example.com", "password": "lowercase123"}
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert "uppercase letter" in str(response.json())
+
+
+def test_register_password_validation_no_lowercase(client: TestClient):
+    response = client.post(
+        "/register", json={"email": "nolower@example.com", "password": "UPPERCASE123"}
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert "lowercase letter" in str(response.json())
+
+
+def test_register_password_validation_no_digit(client: TestClient):
+    response = client.post(
+        "/register", json={"email": "nodigit@example.com", "password": "NoDigitPass"}
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert "digit" in str(response.json())
+
+
 def test_register_and_activate_user_success(client: TestClient):
     registration_data = {"email": "api_test@example.com", "password": "TestPassword123"}
     response_register = client.post("/register", json=registration_data)
@@ -68,7 +100,7 @@ def test_register_and_activate_user_success(client: TestClient):
 
 
 def test_register_user_already_exists(client: TestClient):
-    data = {"email": "conflict@example.com", "password": "p"}
+    data = {"email": "conflict@example.com", "password": "ValidPass1"}
     client.post("/register", json=data)
     response = client.post("/register", json=data)
 
@@ -78,7 +110,7 @@ def test_register_user_already_exists(client: TestClient):
 
 def test_activate_user_invalid_code(client: TestClient):
     email = "invalidcode@example.com"
-    client.post("/register", json={"email": email, "password": "p"})
+    client.post("/register", json={"email": email, "password": "ValidPass1"})
 
     response = client.post("/activate", auth=(email, "0000"))
 
@@ -88,7 +120,7 @@ def test_activate_user_invalid_code(client: TestClient):
 
 def test_activate_user_token_expired(client: TestClient):
     email = "expired@example.com"
-    client.post("/register", json={"email": email, "password": "p"})
+    client.post("/register", json={"email": email, "password": "ValidPass1"})
 
     user_repo = PostgresUserRepository()
     user = user_repo.find_by_email(email)
