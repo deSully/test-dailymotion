@@ -2,13 +2,62 @@
 
 ## Architecture
 
-This project follows a **Layered Architecture (Domain Centric Develoment)** to ensure a clear separation of concerns, which makes the code
-robust, testable and maintenable:
+This project follows a **Layered Architecture (Domain Centric Development)** to ensure a clear separation of concerns, which makes the code
+robust, testable and maintainable:
 
 * **API/Presentation:** Handles HTTP requests and responses (FastAPI).
 * **Service/Application:** Contains the orchestration logic.
-* **Core/Domain:** Contains oure business rules (code expiration, user entities).
-* **Infrastructure:** Handles technical details (PotsgreSQL Connection Pool, Email Mock).
+* **Core/Domain:** Contains pure business rules (code expiration, user entities).
+* **Infrastructure:** Handles technical details (PostgreSQL Connection Pool, Email Mock).
+
+### Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        HTTPClient[HTTP Client]
+    end
+
+    subgraph "API Layer"
+        FastAPI[FastAPI Endpoints<br/>/register, /activate]
+    end
+
+    subgraph "Service Layer"
+        RegService[RegistrationService]
+    end
+
+    subgraph "Core/Domain Layer"
+        Models[Domain Models<br/>User, ActivationToken]
+        Utils[Business Logic<br/>Code Generation, Validation]
+    end
+
+    subgraph "Infrastructure Layer"
+        UserRepo[PostgresUserRepository]
+        TokenRepo[PostgresActivationTokenRepository]
+        EmailService[MockEmailService]
+        DB[(PostgreSQL)]
+    end
+
+    HTTPClient -->|POST /register| FastAPI
+    HTTPClient -->|POST /activate| FastAPI
+    FastAPI --> RegService
+    RegService --> Models
+    RegService --> Utils
+    RegService --> UserRepo
+    RegService --> TokenRepo
+    RegService --> EmailService
+    UserRepo --> DB
+    TokenRepo --> DB
+    EmailService -.->|Mock| EmailService
+
+    style FastAPI fill:#e1f5ff
+    style RegService fill:#fff4e1
+    style Models fill:#f0e1ff
+    style UserRepo fill:#e1ffe1
+    style TokenRepo fill:#e1ffe1
+    style EmailService fill:#e1ffe1
+    style DB fill:#ffe1e1
+```
 
 ## Prerequisites
 
