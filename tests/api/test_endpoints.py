@@ -58,8 +58,9 @@ def test_register_and_activate_user_success(client: TestClient):
     finally:
         Database.return_connection(conn)
 
-    activation_data = {"email": registration_data["email"], "code": activation_code}
-    response_activate = client.post("/activate", json=activation_data)
+    response_activate = client.post(
+        "/activate", auth=(registration_data["email"], activation_code)
+    )
 
     assert response_activate.status_code == 200
     activated_data = response_activate.json()
@@ -79,7 +80,7 @@ def test_activate_user_invalid_code(client: TestClient):
     email = "invalidcode@example.com"
     client.post("/register", json={"email": email, "password": "p"})
 
-    response = client.post("/activate", json={"email": email, "code": "0000"})
+    response = client.post("/activate", auth=(email, "0000"))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "Invalid email or activation code" in response.json()["detail"]
@@ -112,7 +113,7 @@ def test_activate_user_token_expired(client: TestClient):
     finally:
         Database.return_connection(conn)
 
-    response = client.post("/activate", json={"email": email, "code": activation_code})
+    response = client.post("/activate", auth=(email, activation_code))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "Activation token has expired" in response.json()["detail"]

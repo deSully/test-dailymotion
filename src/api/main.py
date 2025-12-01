@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, EmailStr
 
 from src.infrastructure.db.activation_token_repository import (
@@ -20,11 +21,6 @@ class RegisterRequest(BaseModel):
     password: str
 
 
-class ActivateRequest(BaseModel):
-    email: str
-    code: str
-
-
 class RegisterResponse(BaseModel):
     id: str
     email: EmailStr
@@ -35,6 +31,8 @@ class RegisterResponse(BaseModel):
 
 
 Database.initialize(minconn=1, maxconn=10)
+
+security = HTTPBasic()
 
 user_repository = PostgresUserRepository()
 token_repository = PostgresActivationTokenRepository()
@@ -64,9 +62,13 @@ def register_user(request: RegisterRequest) -> RegisterResponse:
 
 
 @app.post("/activate", response_model=RegisterResponse)
-def activate_user(request: ActivateRequest) -> RegisterResponse:
+def activate_user(
+    credentials: HTTPBasicCredentials = Depends(security),
+) -> RegisterResponse:
     try:
-        user = registrasion_service.activate_user(request.email, request.code)
+        user = registrasion_service.activate_user(
+            credentials.username, credentials.password
+        )
         return RegisterResponse(
             id=str(user.id), email=user.email, status=user.status.value
         )

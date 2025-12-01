@@ -84,7 +84,52 @@ the database (PgSQL) and the API service will be started automatically. The data
 docker compose up --build -d
 ```
 
-The API will be available at `http://localhost:8000``
+The API will be available at `http://localhost:8000`
+
+## API Endpoints
+
+### POST /register
+
+Register a new user with email and password.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8000/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "SecurePass123"}'
+```
+
+**Response:** `201 Created`
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "status": "PENDING"
+}
+```
+
+### POST /activate
+
+Activate a user account using HTTP Basic Authentication.
+
+**Request:**
+```bash
+curl -X POST http://localhost:8000/activate \
+  -u user@example.com:1234
+```
+
+Where:
+- `username` = user email
+- `password` = 4-digit activation code (sent by email)
+
+**Response:** `200 OK`
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "status": "ACTIVE"
+}
+```
 
 ### 3. Stop the containers
 
