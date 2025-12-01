@@ -2,9 +2,13 @@ from typing import Any, Optional
 from uuid import UUID
 
 import psycopg2.extras
+from psycopg2 import IntegrityError, OperationalError
 
 from src.core.models import ActivationToken
 from src.infrastructure.db.database import Database
+from src.infrastructure.logging.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 def map_row_to_activation_token(row: Any) -> ActivationToken:
@@ -34,8 +38,21 @@ class PostgresActivationTokenRepository:
                 row = cursor.fetchone()
                 conn.commit()
                 if row:
+                    logger.debug(f"Activation token created for user: {token.user_id}")
                     return map_row_to_activation_token(row)
                 raise Exception("Failed to create activation token.")
+        except IntegrityError as e:
+            conn.rollback()
+            logger.error(f"Database integrity error creating token: {e}")
+            raise ValueError("Activation token already exists")
+        except OperationalError as e:
+            conn.rollback()
+            logger.error(f"Database connection error: {e}", exc_info=True)
+            raise ConnectionError("Database is unavailable")
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Unexpected error creating token: {e}", exc_info=True)
+            raise
         finally:
             Database.return_connection(conn)
 
@@ -58,6 +75,12 @@ class PostgresActivationTokenRepository:
                         created_at=row["created_at"],
                     )
                 return None
+        except OperationalError as e:
+            logger.error(f"Database connection error finding token: {e}", exc_info=True)
+            raise ConnectionError("Database is unavailable")
+        except Exception as e:
+            logger.error(f"Unexpected error finding token: {e}", exc_info=True)
+            raise
         finally:
             Database.return_connection(conn)
 
@@ -70,6 +93,19 @@ class PostgresActivationTokenRepository:
                     (str(user_id),),
                 )
                 conn.commit()
-                return cursor.rowcount > 0
+                deleted = cursor.rowcount > 0
+                if deleted:
+                    logger.debug(f"Activation token deleted for user: {user_id}")
+                return deleted
+        except OperationalError as e:
+            conn.rollback()
+            logger.error(
+                f"Database connection error deleting token: {e}", exc_info=True
+            )
+            raise ConnectionError("Database is unavailable")
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Unexpected error deleting token: {e}", exc_info=True)
+            raise
         finally:
             Database.return_connection(conn)
