@@ -1,5 +1,15 @@
 # Building a User Registration API
 
+## Features
+
+- User registration with email and password
+- Email verification with 4-digit activation code
+- HTTP Basic Authentication for account activation
+- **Activation code expires after 60 seconds**
+- Email service mocked (prints activation code to console)
+- Asynchronous email sending with BackgroundTasks
+- Health check endpoint for monitoring
+
 ## Architecture
 
 This project follows a **Layered Architecture (Domain Centric Development)** to ensure a clear separation of concerns, which makes the code
