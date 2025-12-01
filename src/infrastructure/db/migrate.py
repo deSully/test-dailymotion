@@ -13,6 +13,8 @@ BASE_DIR = "/app"
 
 
 def apply_migrations() -> None:
+    conn = None
+    cursor = None
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
@@ -34,8 +36,9 @@ def apply_migrations() -> None:
         print(f"Error applying migration: {e}")
         raise
     finally:
-        if conn:
+        if cursor:
             cursor.close()
+        if conn:
             conn.close()
 
 
