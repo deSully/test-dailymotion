@@ -12,10 +12,14 @@ logs:
 test:
 	docker compose exec app pytest
 
-.PHONY: test lint format mypy check clean
+.PHONY: test lint format mypy check clean coverage
 
 test:
 	docker compose exec app pytest
+
+coverage:
+	docker compose exec app pytest --cov=src --cov-report=term-missing --cov-report=html
+	@echo "\nCoverage report generated in htmlcov/index.html"
 	
 lint:
 	ruff check .

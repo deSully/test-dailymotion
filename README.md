@@ -183,6 +183,7 @@ make logs           # View application logs
 
 # Testing and code quality
 make test           # Run all tests
+make coverage       # Run tests with coverage report
 make lint           # Check code style with ruff
 make format         # Format code with ruff
 make mypy           # Run type checking with mypy
@@ -195,11 +196,21 @@ docker compose exec app pytest tests/api/        # Run specific test directory
 
 ## Testing
 
-To run the entire test suite inside the application containter : 
+The project includes 27 tests covering all layers (API, Services, Core, Infrastructure, E2E).
+
+**Run all tests:**
 
 ```bash
 docker compose exec app pytest
 ```
+
+**Run tests with coverage:**
+
+```bash
+make coverage
+```
+
+Coverage report will be generated in `htmlcov/index.html`.
 
 ## API Endpoints
 
