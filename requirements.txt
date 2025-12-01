@@ -8,3 +8,4 @@ passlib
 pydantic[email]
 types-psycopg2
 types-passlib
+pytest-cov
