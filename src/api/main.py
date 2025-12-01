@@ -130,7 +130,8 @@ app = FastAPI(
     tags=["Authentication"],
 )
 def register_user(
-    request: RegisterRequest, background_tasks: BackgroundTasks
+    request: RegisterRequest,
+    background_tasks: BackgroundTasks,
 ) -> RegisterResponse:
     logger.info(f"Registration attempt for email: {request.email}")
     try:
