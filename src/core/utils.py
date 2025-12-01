@@ -9,7 +9,7 @@ from src.core.models import ActivationToken
 password_context: Final = CryptContext(schemes=["bcrypt"], deprecated="auto")
 CODE_LENGTH: Final[int] = 4
 
-ACTIVATION_TOKEN_TTL_SECONDS: Final[int] = 15 * 60  # 15 minutes
+ACTIVATION_TOKEN_TTL_SECONDS: Final[int] = 60
 
 
 def hash_password(password: str) -> str:
